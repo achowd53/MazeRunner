@@ -1,4 +1,6 @@
 import tkinter as tk
+from Algorithms import AlgorithmVisualizer
+import time
 
 class MazeGrid():
 
@@ -7,7 +9,7 @@ class MazeGrid():
         #Create Tkinter Window
         self.root = tk.Tk()
         self.root.wm_title("Mazes Am I Right?")
-        self.main_frame = tk.Frame(self.root, width=600, height=500)
+        self.main_frame = tk.Frame(self.root, width=600, height=400)
         self.main_frame.grid(row=0, column=0, padx=5, pady=5)
         self.maze_frame = tk.Frame(self.main_frame, width=400, height=400)
         self.maze_frame.grid(row=0, column=0, padx=5, pady=5)
@@ -40,10 +42,36 @@ class MazeGrid():
         self.maze_object_selector = tk.OptionMenu(self.side_frame, self.place_maze_object, "Maze Path", "Maze Wall", "Entrance", "Exit")
         self.maze_object_selector.grid(row = 4, column = 2)
 
-        self.test_button = tk.Button(self.side_frame, text="Run")
-        self.test_button.grid(row = 5, column = 2)
+        self.run_button = tk.Button(self.side_frame, text="Run Algorithm", command = self.visualizeAlgorithm) 
+        self.run_button.grid(row = 5, column = 2)
+        
+    def visualizeAlgorithm(self): #Create AlgorithmVisualizer instance and run algorithm
+        #Create 2D-Array representing maze
+        maze = []
+        translateColor = {
+            "black": 1,       #wall
+            "grey": 0,        #path
+            "red": 2,         #exit
+            "green": 3        #entrance
+        }
+        for x in range(self.grid_rows.get()):
+            row = []
+            for y in range(self.grid_cols.get()):
+                row.append(translateColor[self.maze_data[(x,y)].cget("bg")])
+            maze.append(row)
+        #Create instance of AlgorithmVisualizer
+        visual = AlgorithmVisualizer(maze)
+        instructions = visual.runAlgorithm()
+        #Visualize Algorithm
+        for step in instructions:
+            for square in instructions[step]:
+                self.maze_data[square].configure(highlightbackground = instructions[step][square], bg = instructions[step][square])
+            self.root.update()
+            time.sleep(1)
 
     def initGrid(self): #Initialize maze_frame grid using size select options
+        self.num_exits = 0
+        self.num_entrances = 0
         for widget in self.maze_frame.winfo_children():
             widget.destroy()
         self.maze_data = {}
@@ -58,7 +86,7 @@ class MazeGrid():
             "Maze Wall": "black",
             "Exit": "red",
             "Entrance": "green",
-            "Maze Path": "grey"
+            "Maze Path": "grey",
         }
         current_color = self.maze_data[(x,y)].cget("bg") #Color of button before change
         change_color = colors[self.place_maze_object.get()] #Color of button to change to
