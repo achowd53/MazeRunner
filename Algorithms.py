@@ -3,7 +3,7 @@ from heapq import *
 
 class AlgorithmVisualizer():
 
-    def __init__(self, grid, algorithm = "Dijikstra"):
+    def __init__(self, grid, algorithm = "DepthFirstSearch"):
 
         self.grid = grid
         self.algorithm = algorithm
@@ -28,6 +28,7 @@ class AlgorithmVisualizer():
     def runAlgorithm(self):
         if self.algorithm == "A*": return self.Astar()
         elif self.algorithm == "Dijikstra": return self.Dijikstra()
+        elif self.algorithm == "DepthFirstSearch": return self.DepthFirstSearch()
 
     '''def Astar(self):
         visitedList = deque([])
@@ -35,16 +36,41 @@ class AlgorithmVisualizer():
         currentPos = self.entrance      
         while (currentPos != self.exit):
             visitedList.append(currentPos)
-            valuesList.append([currentPos[x] - visitedList))
+            valuesList.append([currentPos[x] - visitedList))'''
 
-    def DepthFirstSeach(self):
-        possibleMoves = []
-        possibleMoves.append(self.entrance)
+'''DepthFirst works but need to write out instructions, just make another list full of nodes and return 
+the list that gets to exit'''
+'''instructions on GUI.py is commented out so i can run the actual thing.'''
+
+    def DFSRecursive(self, node, visited):
+        print(node)
+        if (node == self.exit):
+            print("finished: node is " + str(node[0]) + " " + str(node[1]))
+            return None 
+        nodeChildren = []
         for i in range(len(self.vertices)):
-            nextMove = []
-            if self.vertices[i][0] == 
-            '''
-        
+            if ((node[0] + 1, node[1])) in self.vertices:
+                if ((node[0] + 1, node[1])) not in visited:
+                    nodeChildren.append((node[0] + 1, node[1]))
+                    visited.add((node[0] + 1, node[1]))
+            if ((node[0] - 1, node[1])) in self.vertices:
+                if ((node[0] - 1, node[1])) not in visited:
+                    nodeChildren.append((node[0] - 1, node[1]))
+                    visited.add((node[0] - 1, node[1]))
+            if ((node[0], node[1] - 1)) in self.vertices:
+                if ((node[0], node[1] - 1)) not in visited:
+                    nodeChildren.append((node[0], node[1] - 1))
+                    visited.add((node[0], node[1] - 1))
+            if ((node[0], node[1] + 1)) in self.vertices:
+                if ((node[0], node[1] + 1)) not in visited:
+                    nodeChildren.append((node[0], node[1] + 1))
+                    visited.add((node[0], node[1] + 1))
+        for i in range(len(nodeChildren)):
+            self.DFSRecursive(nodeChildren[i], visited)
+
+    def DepthFirstSearch(self):
+        visited = {self.entrance}
+        self.DFSRecursive(self.entrance, visited)
 
     def Dijikstra(self): 
         #Orange for searched squares, Blue for shortest path, return coloring instructions in turn order

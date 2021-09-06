@@ -45,7 +45,7 @@ class MazeGrid():
         self.maze_object_selector = tk.OptionMenu(self.side_frame, self.place_maze_object, "Maze Path", "Maze Wall", "Entrance", "Exit")
         self.maze_object_selector.grid(row = 5, column = 2)
 
-        self.algorithm_selector  = tk.OptionMenu(self.side_frame, self.use_algorithm, "Dijikstra")
+        self.algorithm_selector  = tk.OptionMenu(self.side_frame, self.use_algorithm, "Dijikstra", "DepthFirstSearch")
         self.algorithm_selector.grid(row = 7, column = 2)
 
         self.run_button = tk.Button(self.side_frame, text="Run Algorithm", command = self.visualizeAlgorithm) 
@@ -79,13 +79,13 @@ class MazeGrid():
         visual = AlgorithmVisualizer(maze, self.use_algorithm.get())
         instructions = visual.runAlgorithm()
         #Visualize Algorithm
-        for step in instructions:
+        '''for step in instructions:
             for square in instructions[step]:
                 self.maze_data[square].configure(highlightbackground = instructions[step][square], bg = instructions[step][square])
             self.root.update()
             time.sleep(.1)
         #End Algorithm
-        self.algorithm_running = 0
+        self.algorithm_running = 0'''
 
     def initGrid(self): #Initialize maze_frame grid using size select options
         #Make sure algorithm isn't already running
