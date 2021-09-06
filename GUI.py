@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter.constants import ANCHOR
 from Algorithms import AlgorithmVisualizer
 import time
 
@@ -9,18 +10,20 @@ class MazeGrid():
         #Create Tkinter Window
         self.root = tk.Tk()
         self.root.wm_title("Mazes Am I Right?")
-        self.main_frame = tk.Frame(self.root, width=600, height=400)
-        self.main_frame.grid(row=0, column=0, padx=5, pady=5)
-        self.maze_frame = tk.Frame(self.main_frame, width=400, height=400)
-        self.maze_frame.grid(row=0, column=0, padx=5, pady=5)
+        self.main_frame = tk.Frame(self.root, width = 600, height = 400)
+        self.main_frame.grid(row = 0, column = 0, padx = 5, pady = 5)
+        self.maze_frame = tk.Frame(self.main_frame, width = 400, height = 400)
+        self.maze_frame.grid(row = 0, column = 0, padx = 5, pady = 5)
 
         #Init variables
         self.grid_rows = tk.IntVar(self.root, value=10)
         self.grid_cols = tk.IntVar(self.root, value=10)
         self.maze_data = {}
         self.place_maze_object = tk.StringVar(self.root, value = "Maze Path")
+        self.use_algorithm = tk.StringVar(self.root, value = "Dijikstra")
         self.num_entrances = 0
         self.num_exits = 0
+        self.algorithm_running = 0
 
         #Create frame on side for selecting grid size
         self.side_frame = tk.Frame(self.main_frame, width = 200, height = 400)
@@ -40,41 +43,61 @@ class MazeGrid():
         self.set_grid.grid(row = 2, column = 2)
         
         self.maze_object_selector = tk.OptionMenu(self.side_frame, self.place_maze_object, "Maze Path", "Maze Wall", "Entrance", "Exit")
-        self.maze_object_selector.grid(row = 4, column = 2)
+        self.maze_object_selector.grid(row = 5, column = 2)
+
+        self.algorithm_selector  = tk.OptionMenu(self.side_frame, self.use_algorithm, "Dijikstra")
+        self.algorithm_selector.grid(row = 7, column = 2)
 
         self.run_button = tk.Button(self.side_frame, text="Run Algorithm", command = self.visualizeAlgorithm) 
-        self.run_button.grid(row = 5, column = 2)
+        self.run_button.grid(row = 8, column = 2)
         
     def visualizeAlgorithm(self): #Create AlgorithmVisualizer instance and run algorithm
-        #Create 2D-Array representing maze
+        #Make sure there's an entrance and exit in maze
+        if self.num_entrances != 1 or self.num_exits != 1: return -1
+        #Make sure an algorithm isn't running already
+        if self.algorithm_running: return -1
+        else: self.algorithm_running = 1
+        #Create 2D-Array representing maze and remove previous algorithm trails
         maze = []
         translateColor = {
             "black": 1,       #wall
             "grey": 0,        #path
+            "orange": 0,
+            "blue": 0,
             "red": 2,         #exit
             "green": 3        #entrance
         }
         for x in range(self.grid_rows.get()):
             row = []
             for y in range(self.grid_cols.get()):
+                if self.maze_data[(x,y)].cget("bg") in ["blue", "orange"]:
+                    self.maze_data[(x,y)].configure(highlightbackground = "grey", bg = "grey")
                 row.append(translateColor[self.maze_data[(x,y)].cget("bg")])
             maze.append(row)
+        self.root.update()
         #Create instance of AlgorithmVisualizer
-        visual = AlgorithmVisualizer(maze)
+        visual = AlgorithmVisualizer(maze, self.use_algorithm.get())
         instructions = visual.runAlgorithm()
         #Visualize Algorithm
         for step in instructions:
             for square in instructions[step]:
                 self.maze_data[square].configure(highlightbackground = instructions[step][square], bg = instructions[step][square])
             self.root.update()
-            time.sleep(1)
+            time.sleep(.1)
+        #End Algorithm
+        self.algorithm_running = 0
 
     def initGrid(self): #Initialize maze_frame grid using size select options
+        #Make sure algorithm isn't already running
+        if self.algorithm_running: return -1
+        #Reset init vars
         self.num_exits = 0
         self.num_entrances = 0
+        #Destroy old maze cells
         for widget in self.maze_frame.winfo_children():
             widget.destroy()
         self.maze_data = {}
+        #Create maze cells
         for x in range(self.grid_rows.get()):
             for y in range(self.grid_cols.get()):
                 self.maze_data[(x,y)] = tk.Button(self.maze_frame, highlightbackground = "grey", bg = "grey", command = lambda row = x, col = y: self.gridSquareColor(row, col))

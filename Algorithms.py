@@ -52,41 +52,35 @@ class AlgorithmVisualizer():
         instructions = {}
         step = 0
         #Dijikstra Algorithm
-        dist = {}
+        dist = {self.entrance: 0}
         prev = {}
         q = []
         heapify(q)
         for v in self.vertices:
-            dist[v] = float("inf")
+            if v != self.entrance:
+                dist[v] = float("inf")
             prev[v] = None
-            if (v != self.entrance): 
-                heappush(q, v)
-        dist[self.entrance] = 0
+            heappush(q, (dist[v], v))
         while q:
-            u = heappop(q)
-            neighbors = filter(lambda x: 0 <= x[0] <= self.bottom_edge and 0 <= x[1] <= self.right_edge and dist[x] == float("inf"),
+            _,u = heappop(q)
+            neighbors = filter(lambda x: 0 <= x[0] <= self.bottom_edge and 0 <= x[1] <= self.right_edge and dist.get(x,0) and dist[x] == float("inf"),
                                 [(u[0]+1,u[1]), (u[0]-1,u[1]), (u[0],u[1]+1), (u[0],u[1]-1)])
             step += 1
             instructions[step] = {}
             for v in neighbors:
                 temp = dist[u] + 1
-                #for each v, make it orange
                 instructions[step][v] = "orange"
                 if temp < dist[v]:
-                    #if prev[v] and v is the target, update path to v as blue after setting previous path to v as grey
+                    dist[v] = temp
+                    prev[v] = u
+                    heappush(q, (dist[v], v))
                     if v == self.exit:
                         while prev[v]:
                             v = prev[v]
-                            instructions[step][v] = "grey"
-                        dist[self.exit] = temp
-                        prev[self.exit] = u
-                        v = self.exit
-                        while prev[v]:
-                            v = prev[v]
                             instructions[step][v] = "blue"
-                    else:    
-                        dist[v] = temp
-                        prev[v] = u
+                        instructions[step][self.entrance] = "green"
+                        instructions[step][self.exit] = "red"
+                        return instructions
                 instructions[step][self.entrance] = "green"
                 instructions[step][self.exit] = "red"
         return instructions
