@@ -70,7 +70,7 @@ class MazeGrid():
         for x in range(self.grid_rows.get()):
             row = []
             for y in range(self.grid_cols.get()):
-                if self.maze_data[(x,y)].cget("bg") in ["blue", "orange"]:
+                if self.maze_data[(x,y)].cget("bg") not in ["grey", "red", "green", "black"]:
                     self.maze_data[(x,y)].configure(highlightbackground = "grey", bg = "grey")
                 row.append(translateColor[self.maze_data[(x,y)].cget("bg")])
             maze.append(row)
