@@ -83,24 +83,29 @@ class AlgorithmVisualizer():
             #Increment step for instructions
             step += 1
             self.instructions[step] = {}
-            #Pop off node from stack
+            #Pop off node from stack and add to visited
             node = q.popleft()
+            visited.add(node)
+
+            #If exit found, color path from entrance blue and return instructions
+            if node == self.exit:
+                while prev[node] != None:
+                    self.instructions[step][node] = "blue"
+                    node = prev[node]
+                self.instructions[step][self.exit] = "red"
+                return self.instructions
+            #Color newly visited nodes orange
+            self.instructions[step][node] = "orange"
+            
             #Get valid neighbors
             neighbors = filter(lambda x: x not in visited and x in self.vertices,
-                             [(node[0]+1, node[1]), (node[0]-1,node[1]), (node[0], node[1]-1), (node[0], node[1]+1)])
+                             [(node[0]+1, node[1]), (node[0]-1,node[1]), (node[0], node[1]+1), (node[0], node[1]-1)])
+            #Add valid neighbors to stack and to prev
             for neighbor in neighbors:
                 q.appendleft(neighbor)
-                visited.add(neighbor)
                 prev[neighbor] = node
-                #Color newly visited neighbors orange
-                self.instructions[step][neighbor] = "orange"
-                #If exit found, color path from entrance blue and return instructions
-                if neighbor == self.exit:
-                    while prev[neighbor] != None:
-                        self.instructions[step][neighbor] = "blue"
-                        neighbor = prev[neighbor]
-                    self.instructions[step][self.exit] = "red"
-                    return self.instructions
+            #Make sure entrance stays green
+            self.instructions[step][self.entrance] = "green"
         return self.instructions
                    
     def Dijikstra(self): #Run Dijikstra Algorithm and return coloring instructions for visualizing it

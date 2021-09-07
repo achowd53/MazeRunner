@@ -23,7 +23,7 @@ class MazeGrid():
         self.grid_rows = tk.IntVar(self.root, value=10)
         self.grid_cols = tk.IntVar(self.root, value=10)
         self.maze_data = {}
-        self.place_maze_object = tk.StringVar(self.root, value = "Maze Path")
+        self.place_maze_object = tk.StringVar(self.root, value = "Maze Wall")
         self.use_path_algorithm = tk.StringVar(self.root, value = "Dijikstra")
         self.use_maze_algorithm = tk.StringVar(self.root, value = "Random Kruskall")
         self.num_entrances = 0
@@ -63,7 +63,7 @@ class MazeGrid():
 
         self.maze_object_selector = tk.Label(self.maze_generator_frame,text = " "*18+"Maze Object: ", font = "Helvetica 11")
         self.maze_object_selector.grid(row = 1, column = 0)
-        self.maze_object_selector = tk.OptionMenu(self.maze_generator_frame, self.place_maze_object, "Maze Path", "Maze Wall", "Entrance", "Exit", "Highlight Path")
+        self.maze_object_selector = tk.OptionMenu(self.maze_generator_frame, self.place_maze_object, "Maze Wall", "Entrance", "Exit", "Highlight Path", "Maze Path")
         self.maze_object_selector.grid(row = 1, column = 1)
 
         self.maze_generator_selector_label = tk.Label(self.maze_generator_frame, text = " "*14+"Maze Algorithm: ", font = "Helvetica 11")
@@ -107,6 +107,7 @@ class MazeGrid():
             "grey": 0,        #path
             "orange": 0,
             "blue": 0,
+            "violet": 0,
             "red": 2,         #exit
             "green": 3        #entrance
         }
@@ -168,22 +169,25 @@ class MazeGrid():
         }
         current_color = self.maze_data[(x,y)].cget("bg") #Color of button before change
         change_color = colors[self.place_maze_object.get()] #Color of button to change to
-
+        
         #Only allow highlight path to highlight/unhighlight maze walls
         if (change_color == "violet"):
-            if current_color in ["orange", "blue", "grey"]: pass
-            elif current_color == "violet": change_color = "grey"
-            else: change_color = current_color
+            if current_color in ["orange", "blue", "grey", "violet"]: pass
+            else: return 0
 
         #If there will be more than 1 exit or entrances after color change, don't change
-        self.num_entrances += (change_color == "green") - (current_color == "green")
-        self.num_exits += (change_color == "red") - (current_color == "red")
-        if (self.num_entrances <= 1 and self.num_exits <= 1):
-            self.maze_data[(x,y)].configure(highlightbackground = change_color, bg = change_color)
-            self.root.update()
+        if self.num_entrances == 1 and change_color == "green" and current_color != "green": return 0
+        if self.num_exits == 1 and change_color == "red" and current_color != "red": return 0
+
+        if current_color == "green": self.num_entrances -= 1
+        elif current_color == "red": self.num_exits -= 1
+        if (current_color == change_color): #If trying to change a block to the same thing as before, unselect block to path instead
+            self.maze_data[(x,y)].configure(highlightbackground = "grey", bg = "grey")
         else:
-            self.num_entrances -= ((change_color == "green") - (current_color == "green"))
-            self.num_exits -= ((change_color == "red") - (current_color == "red"))
+            if change_color == "green": self.num_entrances += 1
+            elif change_color == "red": self.num_exits += 1
+            self.maze_data[(x,y)].configure(highlightbackground = change_color, bg = change_color)
+        self.root.update()
 
 if __name__ == '__main__':
     gui = MazeGrid()
