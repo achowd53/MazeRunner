@@ -42,7 +42,7 @@ class MazeGrid():
         self.set_grid = tk.Button(self.side_frame, text = "Set Grid/Reset", command = self.initGrid)
         self.set_grid.grid(row = 2, column = 2)
         
-        self.maze_object_selector = tk.OptionMenu(self.side_frame, self.place_maze_object, "Maze Path", "Maze Wall", "Entrance", "Exit")
+        self.maze_object_selector = tk.OptionMenu(self.side_frame, self.place_maze_object, "Maze Path", "Maze Wall", "Entrance", "Exit", "Highlight Path")
         self.maze_object_selector.grid(row = 5, column = 2)
 
         self.algorithm_selector  = tk.OptionMenu(self.side_frame, self.use_algorithm, "Dijikstra", "DepthFirstSearch", "test")
@@ -50,6 +50,9 @@ class MazeGrid():
 
         self.run_button = tk.Button(self.side_frame, text="Run Algorithm", command = self.visualizeAlgorithm) 
         self.run_button.grid(row = 8, column = 2)
+
+        self.clear_path = tk.Button(self.side_frame, text="Clear Visualized Path", command = self.clearVisualizedPath)
+        self.clear_path.grid(row = 9, column = 2)
         
     def visualizeAlgorithm(self): #Create AlgorithmVisualizer instance and run algorithm
         #Make sure there's an entrance and exit in maze
@@ -67,14 +70,12 @@ class MazeGrid():
             "red": 2,         #exit
             "green": 3        #entrance
         }
+        self.clearVisualizedPath()
         for x in range(self.grid_rows.get()):
             row = []
             for y in range(self.grid_cols.get()):
-                if self.maze_data[(x,y)].cget("bg") not in ["grey", "red", "green", "black"]:
-                    self.maze_data[(x,y)].configure(highlightbackground = "grey", bg = "grey")
                 row.append(translateColor[self.maze_data[(x,y)].cget("bg")])
             maze.append(row)
-        self.root.update()
         #Create instance of AlgorithmVisualizer
         visual = AlgorithmVisualizer(maze, self.use_algorithm.get())
         instructions = visual.runAlgorithm()
@@ -86,6 +87,13 @@ class MazeGrid():
             time.sleep(.1)
         #End Algorithm
         self.algorithm_running = 0
+
+    def clearVisualizedPath(self): #Clear visualized path from algorithm visualizer
+        for x in range(self.grid_rows.get()):
+            for y in range(self.grid_cols.get()):
+                if self.maze_data[(x,y)].cget("bg") not in ["grey", "red", "green", "black"]:
+                    self.maze_data[(x,y)].configure(highlightbackground = "grey", bg = "grey")
+        self.root.update()
 
     def initGrid(self): #Initialize maze_frame grid using size select options
         #Make sure algorithm isn't already running
@@ -110,9 +118,16 @@ class MazeGrid():
             "Exit": "red",
             "Entrance": "green",
             "Maze Path": "grey",
+            "Highlight Path": "violet"
         }
         current_color = self.maze_data[(x,y)].cget("bg") #Color of button before change
         change_color = colors[self.place_maze_object.get()] #Color of button to change to
+
+        #Only allow highlight path to highlight/unhighlight maze walls
+        if (change_color == "violet"):
+            if current_color in ["orange", "blue", "grey"]: pass
+            elif current_color == "violet": change_color = "grey"
+            else: change_color = current_color
 
         #If there will be more than 1 exit or entrances after color change, don't change
         self.num_entrances += (change_color == "green") - (current_color == "green")

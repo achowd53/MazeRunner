@@ -5,6 +5,7 @@ Implemented Currently:
 - Manual Maze Creation
 - Dijikstra Visualization
 - Depth First Search Visualization
+- Ability to highlight/unhighlight Maze Path blocks with Highlight Path option
 
 Left to Implement:
 - Floyd-Warshall Visualization
