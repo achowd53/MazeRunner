@@ -1,12 +1,12 @@
 # MazeRunner
-Maze Generator done using Tkinter in Python 3 with various shortest path algorithm visualizations.
+Maze Generator done using Tkinter in Python 3 with various path algorithm visualizations.
 
 Implemented Currently:
 - Manual Maze Creation
 - Dijikstra Visualization
+- Depth First Search Visualization
 
 Left to Implement:
-- Depth First Search Visualization
 - Floyd-Warshall Visualization
 - Bellman-Ford Visualization
 - A* Visualization with one or multiple different heuristics

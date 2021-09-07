@@ -45,7 +45,7 @@ class MazeGrid():
         self.maze_object_selector = tk.OptionMenu(self.side_frame, self.place_maze_object, "Maze Path", "Maze Wall", "Entrance", "Exit")
         self.maze_object_selector.grid(row = 5, column = 2)
 
-        self.algorithm_selector  = tk.OptionMenu(self.side_frame, self.use_algorithm, "Dijikstra", "DepthFirstSearch", "iterDFS")
+        self.algorithm_selector  = tk.OptionMenu(self.side_frame, self.use_algorithm, "Dijikstra", "DepthFirstSearch", "test")
         self.algorithm_selector.grid(row = 7, column = 2)
 
         self.run_button = tk.Button(self.side_frame, text="Run Algorithm", command = self.visualizeAlgorithm) 

@@ -7,6 +7,8 @@ class AlgorithmVisualizer():
 
         self.grid = grid
         self.algorithm = algorithm
+        #Instructions in format: Ex: {1: {(1,1):"blue", (2,2):"red", (3,3):"orange", (1,4):"blue"}, 2: {(1,2):"green"}}
+        #Coloring instructions are: Orange - Searched Square, Blue - Square on Final Path, Red - Exit, Green - Entrance
         self.instructions = {}
 
         #Find Entrance, Exit, and Travellable Spaces (Vertices)
@@ -30,20 +32,11 @@ class AlgorithmVisualizer():
         if self.algorithm == "A*": return self.Astar()
         elif self.algorithm == "Dijikstra": return self.Dijikstra()
         elif self.algorithm == "DepthFirstSearch": return self.DepthFirstSearch()
-        elif self.algorithm == "iterDFS": return self.iterativeDFS()
-
-    '''def Astar(self):
-        visitedList = deque([])
-        valuesList = deque([])
-        currentPos = self.entrance      
-        while (currentPos != self.exit):
-            visitedList.append(currentPos)
-            valuesList.append([currentPos[x] - visitedList))'''
+        elif self.algorithm == "test": return self.testAlgorithm()
 
     '''DepthFirst figure out why it aint blue and reset visited like currentPath'''
-    '''instructions on GUI.py is commented out so i can run the actual thing.'''
 
-    def _DFSRecursive(self, node, visited, currentPath, prevPath, instructionPath):
+    def _testRecursive(self, node, visited, currentPath, prevPath, instructionPath):
         if (node == self.exit):
             print("finished: node is " + str(node[0]) + " " + str(node[1]))
             if len(prevPath) == 0 or len(prevPath) > len(currentPath):
@@ -68,69 +61,80 @@ class AlgorithmVisualizer():
                     instructionPath.append({neighbor: "orange"})
         copyCurrentPath = currentPath
         for i in nodeChildren:
-            self._DFSRecursive(i, visited, copyCurrentPath, prevPath, instructionPath)
+            self._testRecursive(i, visited, copyCurrentPath, prevPath, instructionPath)
 
-    def DepthFirstSearch(self):
+    def testAlgorithm(self):
         visited = {self.entrance}
         currentPath = []
         prevPath = []
         instructionPath = []
-        self._DFSRecursive(self.entrance, visited, currentPath, prevPath, instructionPath)
+        self._testRecursive(self.entrance, visited, currentPath, prevPath, instructionPath)
         for i in range(len(instructionPath)):
             self.instructions[i] = instructionPath[i]
         return self.instructions
 
-    def iterativeDFS(self): #Is not shortest path
+    def DepthFirstSearch(self): #Run DFS Algorithm and return coloring instructions for visualizing it
         step = 0
         q = deque([self.entrance])
         visited = set([self.entrance])
         prev = {self.entrance: None}
+
         while q:
+            #Increment step for instructions
             step += 1
             self.instructions[step] = {}
+            #Pop off node from stack
             node = q.popleft()
-            for neighbor in [(node[0]+1, node[1]), (node[0]-1,node[1]), (node[0], node[1]-1), (node[0], node[1]+1)]:
-                if neighbor not in visited and neighbor in visited:
-                    visited.add(neighbor)
-                    prev[neighbor] = node
-                    q.appendleft(neighbor)
-                    self.instructions[step][self.exit] = "orange"
-                    if neighbor == self.exit:
-                        while prev[node] != None:
-                            self.instructions[step][node] = "blue"
-                            node = prev[node]
-                        return self.instructions
-            self.instructions[step][self.exit] = "red"
+            #Get valid neighbors
+            neighbors = filter(lambda x: x not in visited and x in self.vertices,
+                             [(node[0]+1, node[1]), (node[0]-1,node[1]), (node[0], node[1]-1), (node[0], node[1]+1)])
+            for neighbor in neighbors:
+                q.appendleft(neighbor)
+                visited.add(neighbor)
+                prev[neighbor] = node
+                #Color newly visited neighbors orange
+                self.instructions[step][neighbor] = "orange"
+                #If exit found, color path from entrance blue and return instructions
+                if neighbor == self.exit:
+                    while prev[neighbor] != None:
+                        self.instructions[step][neighbor] = "blue"
+                        neighbor = prev[neighbor]
+                    self.instructions[step][self.exit] = "red"
+                    return self.instructions
         return self.instructions
                    
-    def Dijikstra(self): 
-        #Orange for searched squares, Blue for shortest path, return coloring instructions in turn order
-        #Ex: {1: {(1,1):"blue", (2,2):"red", (3,3):"grey", (1,4):"blue"}, 2: {(1,2)}}
+    def Dijikstra(self): #Run Dijikstra Algorithm and return coloring instructions for visualizing it
         step = 0
-        #Dijikstra Algorithm
         dist = {self.entrance: 0}
-        prev = {}
+        prev = {self.entrance: None}
         q = []
         heapify(q)
+
         for v in self.vertices:
             if v != self.entrance:
                 dist[v] = float("inf")
-            prev[v] = None
             heappush(q, (dist[v], v))
+
         while q:
+            #Pop off node from min-priority queue
             _,u = heappop(q)
+            #Get valid neighbors
             neighbors = filter(lambda x: 0 <= x[0] <= self.bottom_edge and 0 <= x[1] <= self.right_edge and dist.get(x,0) and dist[x] == float("inf"),
                                 [(u[0]+1,u[1]), (u[0]-1,u[1]), (u[0],u[1]+1), (u[0],u[1]-1)])
+            #Increment Step for Instructions
             step += 1
             self.instructions[step] = {}
+
             for v in neighbors:
                 temp = dist[u] + 1
+                #Color newly visited neighbors orange
                 self.instructions[step][v] = "orange"
+                #If new path faster to v
                 if temp < dist[v]:
                     dist[v] = temp
                     prev[v] = u
                     heappush(q, (dist[v], v))
-                    #If you found the exit, color path to exit from entrance blue and return instructions
+                    #If exit found, color path to exit from entrance blue and return instructions
                     if v == self.exit:
                         while prev[v]:
                             v = prev[v]
@@ -138,8 +142,6 @@ class AlgorithmVisualizer():
                         self.instructions[step][self.entrance] = "green"
                         self.instructions[step][self.exit] = "red"
                         return self.instructions
-                self.instructions[step][self.entrance] = "green"
-                self.instructions[step][self.exit] = "red"
         return self.instructions
         
     def __str__(self):
