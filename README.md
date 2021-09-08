@@ -5,15 +5,16 @@ Implemented Currently:
 - Manual Maze Creation
 - Dijikstra Visualization
 - Depth First Search Visualization
+- Randomized Kruskall's Algorithm for Maze Generation
 - Ability to highlight/unhighlight Maze Path blocks with Highlight Path option
 
 Left to Implement:
 - Floyd-Warshall Visualization
 - Bellman-Ford Visualization
 - A* Visualization with one or multiple different heuristics
-- Random Maze Generation with possible Algorithm selection for generation
+- More Random Maze Generation Algorithms
 
-Run by running GUI.py with $ python3 GUI.py
+Run by running GUI.py with $ python3 src/GUI.py
 
 Bugs:
 - Maze does not render on Windows correctly (Linux untested)

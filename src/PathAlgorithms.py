@@ -1,7 +1,7 @@
 from collections import deque
 from heapq import *
 
-class AlgorithmVisualizer():
+class PathAlgorithmVisualizer():
 
     def __init__(self, grid, algorithm = "DepthFirstSearch"):
 

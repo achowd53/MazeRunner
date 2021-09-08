@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter.constants import ANCHOR
-from Algorithms import AlgorithmVisualizer
+from PathAlgorithms import PathAlgorithmVisualizer
+from MazeAlgorithms import MazeAlgorithmVisualizer
 import time
 
 class MazeGrid():
@@ -71,7 +72,7 @@ class MazeGrid():
         self.maze_generator_selector = tk.OptionMenu(self.maze_generator_frame, self.use_maze_algorithm, "Random Kruskall")
         self.maze_generator_selector.grid(row = 2, column = 1)
 
-        self.maze_generator_button = tk.Button(self.maze_generator_frame, text="Run Algorithm") 
+        self.maze_generator_button = tk.Button(self.maze_generator_frame, text="Run Algorithm", command = self.visualizeMazeAlgorithm) 
         self.maze_generator_button.grid(row = 3, column = 0, columnspan = 2)
 
         #Create frame on side for path algorithm selection, running, and clearing visualized path
@@ -88,13 +89,37 @@ class MazeGrid():
 
         tk.Label(self.path_algorithm_frame, font = "Helvetica 3").grid(row = 2, column = 0, columnspan = 2)
 
-        self.run_button = tk.Button(self.path_algorithm_frame, text="Run Algorithm", command = self.visualizeAlgorithm) 
+        self.run_button = tk.Button(self.path_algorithm_frame, text="Run Algorithm", command = self.visualizePathAlgorithm) 
         self.run_button.grid(row = 3, column = 0, columnspan = 2)
 
         self.clear_path = tk.Button(self.path_algorithm_frame, text="Clear Visualized Path", command = self.clearVisualizedPath)
         self.clear_path.grid(row = 4, column = 0, columnspan = 2)
-        
-    def visualizeAlgorithm(self): #Create AlgorithmVisualizer instance and run algorithm
+    
+    def visualizeMazeAlgorithm(self): #Create MazeAlgorithmVisualizer instance and run algorithm
+        #Make sure an algorithm isn't running already
+        if self.algorithm_running: return -1
+        else: self.algorithm_running = 1
+        #Black out maze grid
+        for x in range(self.grid_rows.get()):
+            for y in range(self.grid_cols.get()):
+                self.maze_data[(x,y)].configure(highlightbackground = "black", bg = "black")
+        #Create instance of MazeAlgorithmVisualizer
+        visual = MazeAlgorithmVisualizer([self.grid_rows.get(), self.grid_cols.get()], self.use_maze_algorithm.get())
+        instructions, entrance, exit = visual.runAlgorithm()
+        #Visualize Algorithm
+        for step in instructions:
+            for square in instructions[step]:
+                self.maze_data[square].configure(highlightbackground = instructions[step][square], bg = instructions[step][square])
+            self.root.update()
+            time.sleep(.2)
+        self.maze_data[entrance].configure(highlightbackground = "green", bg = "green")
+        self.num_entrances = 1
+        self.maze_data[exit].configure(highlightbackground = "red", bg = "red")
+        self.num_exits = 1
+        #End Algorithm
+        self.algorithm_running = 0
+
+    def visualizePathAlgorithm(self): #Create PathAlgorithmVisualizer instance and run algorithm
         #Make sure there's an entrance and exit in maze
         if self.num_entrances != 1 or self.num_exits != 1: return -1
         #Make sure an algorithm isn't running already
@@ -119,15 +144,15 @@ class MazeGrid():
                 row.append(translateColor[self.maze_data[(x,y)].cget("bg")])
             maze.append(row)
         self.root.update()
-        #Create instance of AlgorithmVisualizer
-        visual = AlgorithmVisualizer(maze, self.use_path_algorithm.get())
+        #Create instance of PathAlgorithmVisualizer
+        visual = PathAlgorithmVisualizer(maze, self.use_path_algorithm.get())
         instructions = visual.runAlgorithm()
         #Visualize Algorithm
         for step in instructions:
             for square in instructions[step]:
                 self.maze_data[square].configure(highlightbackground = instructions[step][square], bg = instructions[step][square])
             self.root.update()
-            time.sleep(.1)
+            time.sleep(.2)
         #End Algorithm
         self.algorithm_running = 0
 
