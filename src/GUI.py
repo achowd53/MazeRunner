@@ -69,7 +69,7 @@ class MazeGrid():
 
         self.maze_generator_selector_label = tk.Label(self.maze_generator_frame, text = " "*14+"Maze Algorithm: ", font = "Helvetica 11")
         self.maze_generator_selector_label.grid(row = 2, column = 0)
-        self.maze_generator_selector = tk.OptionMenu(self.maze_generator_frame, self.use_maze_algorithm, "Random Kruskall")
+        self.maze_generator_selector = tk.OptionMenu(self.maze_generator_frame, self.use_maze_algorithm, "Random Kruskall", "Random DFS")
         self.maze_generator_selector.grid(row = 2, column = 1)
 
         self.maze_generator_button = tk.Button(self.maze_generator_frame, text="Run Algorithm", command = self.visualizeMazeAlgorithm) 

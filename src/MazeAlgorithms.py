@@ -1,5 +1,6 @@
-from random import shuffle
+from random import shuffle, randint, choice
 from SimpleDisjointSet import SimpleDisjointSet
+from collections import deque
 
 class MazeAlgorithmVisualizer():
 
@@ -11,6 +12,7 @@ class MazeAlgorithmVisualizer():
     
     def runAlgorithm(self):
         if self.algorithm == "Random Kruskall": return self.randomKruskall()
+        elif self.algorithm == "Random DFS": return self.randomizedDFS()
     
     def randomKruskall(self): #Return instructions for making maze pathway as well as location for entrance and exit of maze
         step = 0
@@ -39,7 +41,7 @@ class MazeAlgorithmVisualizer():
             if ds.find(edge[0]) != ds.find(edge[2]):
                 step += 1
                 self.instructions[step] = {}
-                ds.union(edge[0], edge[2])
+                ds.union(edge[0], edge[2]) 
                 self.instructions[step][edge[0]] = "grey"
                 self.instructions[step][edge[1]] = "grey"
                 self.instructions[step][edge[2]] = "grey"
@@ -49,3 +51,38 @@ class MazeAlgorithmVisualizer():
         shuffle(nodes)
         
         return self.instructions, nodes[0], nodes[1]
+    
+    def randomizedDFS(self):
+        #Set correct grid boundaries
+        if self.grid_size[0] % 2 != 1:
+            self.grid_size[0] -= 1
+        if self.grid_size[1] % 2 != 1:
+            self.grid_size[1] -= 1
+        #Initialize and set certain variables required for DFS algorithm
+        startNode = (randint(0, self.grid_size[0]//2)*2, randint(0, self.grid_size[1]//2)*2)
+        visited = set()
+        visited.add(startNode)
+        stack = deque()
+        stack.appendleft(startNode)
+        possibleExits = []
+        self.instructions[0] = {startNode : "grey"}
+        stepCounter = 0
+        #The actual algorithm and writing the instructions
+        #Algorithm was based off of wikipedia on its maze generation page
+        while stack:
+            currentNode = stack.popleft()
+            neighbor = list(filter(lambda x: 0 <= x[0] < self.grid_size[0] and 0 <= x[1] < self.grid_size[1] and x not in visited,
+            [(currentNode[0] + 2, currentNode[1]), (currentNode[0] - 2, currentNode[1]), (currentNode[0], currentNode[1] + 2), (currentNode[0], currentNode[1] - 2)]))
+            if neighbor:
+                stack.appendleft(currentNode)
+                neighbor = choice(neighbor)
+                stack.appendleft(neighbor)
+                visited.add(neighbor)
+                wallCell = (int((neighbor[0] + currentNode[0]) / 2), int((neighbor[1] + currentNode[1]) / 2)) 
+                stepCounter += 1
+                self.instructions[stepCounter] = {wallCell: "grey", neighbor: "grey"}
+            else:
+                possibleExits.append(currentNode)
+        possibleExits.remove(startNode)
+        return self.instructions, startNode, choice(possibleExits)
+            
