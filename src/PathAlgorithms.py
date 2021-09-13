@@ -1,4 +1,4 @@
-from collections import deque
+from collections import deque, defaultdict
 from heapq import *
 
 class PathAlgorithmVisualizer():
@@ -29,11 +29,54 @@ class PathAlgorithmVisualizer():
         self.bottom_edge = len(grid) - 1
 
     def runAlgorithm(self):
-        if self.algorithm == "A*": return self.Astar()
-        elif self.algorithm == "Dijikstra": return self.Dijikstra()
+        if self.algorithm == "Dijikstra": return self.Dijikstra()
         elif self.algorithm == "DepthFirstSearch": return self.DepthFirstSearch()
+        elif self.algorithm == "Floyd-Warshall": return self.FloydWarshall()
         elif self.algorithm == "test": return self.testAlgorithm()
 
+    def FloydWarshall(self):
+        step = 0
+        dist = defaultdict(lambda: dict())
+        next = defaultdict(lambda: dict())
+        #Initalize dist between all nodes as infinite
+        for u in self.vertices:
+            for v in self.vertices:
+                dist[u][v] = float("inf")
+                next[u][v] = v
+        #Initalize paths from maze in dist
+        for x in range(len(self.grid)):
+            for y in range(len(self.grid[0])):
+                neighbors = filter(lambda x: x in self.vertices,
+                             [(x+1, y), (x-1, y), (x, y+1), (x, y-1)])
+                for neighbor in neighbors:
+                    dist[(x,y)][neighbor] = 1
+        #Initialize distance from node to itself as 0
+        for v in self.vertices:
+            dist[v][v] = 0
+            next[v][v] = v
+        #Main Algorithm
+        color_cycle = True
+        for k in self.vertices:
+            for i in self.vertices:
+                for j in self.vertices:
+                    if color_cycle:
+                        step += 1
+                        self.instructions[step] = {k: "orange", i: "orange", j: "orange", self.entrance: "green", self.exit:"red"}
+                    if dist[i][j] > dist[i][k] + dist[k][j]:
+                        dist[i][j] = dist[i][k] + dist[k][j]
+                        next[i][j] = next[i][k]
+                color_cycle = False
+        #Reconstruct Path
+        step += 1
+        self.instructions[step] = {}
+        u, v = self.entrance, self.exit
+        if not (next[u][v]): return self.instructions
+        while u != v:
+            u = next[u][v]
+            self.instructions[step][u] = "blue"
+        self.instructions[step][v] = "red"
+        return self.instructions
+        
     '''DepthFirst figure out why it aint blue and reset visited like currentPath'''
 
     def _testRecursive(self, node, visited, currentPath, prevPath, instructionPath):

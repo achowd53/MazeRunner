@@ -12,7 +12,7 @@ class MazeGrid():
         self.root = tk.Tk()
         self.root.wm_title("Mazes Am I Right?")
 
-        self.main_frame = tk.Frame(self.root, width = 610, height = 400, borderwidth = 5, highlightbackground = "black")
+        self.main_frame = tk.Frame(self.root, width = 610, height = 450, borderwidth = 5, highlightbackground = "black")
         self.main_frame.grid(row = 0, column = 0, padx = 5, pady = 5)
         self.main_frame.pack_propagate(0)
 
@@ -30,6 +30,10 @@ class MazeGrid():
         self.num_entrances = 0
         self.num_exits = 0
         self.algorithm_running = 0
+
+        #Create Time Taken underneath maze
+        self.time_taken_label = tk.Label(self.main_frame, text = "Time Taken: ", font = "Helvetica 12")
+        self.time_taken_label.grid(row = 1, column = 0)
 
         #Create general frame on side
         self.side_frame = tk.Frame(self.main_frame, width = 200, height = 400)
@@ -84,7 +88,7 @@ class MazeGrid():
 
         self.algorithm_selector_label = tk.Label(self.path_algorithm_frame, text = " "*14+"Path Algorithm: ", font = "Helvetica 11")
         self.algorithm_selector_label.grid(row = 1, column = 0)
-        self.algorithm_selector = tk.OptionMenu(self.path_algorithm_frame, self.use_path_algorithm, "Dijikstra", "DepthFirstSearch", "test")
+        self.algorithm_selector = tk.OptionMenu(self.path_algorithm_frame, self.use_path_algorithm, "Dijikstra", "DepthFirstSearch", "Floyd-Warshall", "test")
         self.algorithm_selector.grid(row = 1, column = 1)
 
         tk.Label(self.path_algorithm_frame, font = "Helvetica 3").grid(row = 2, column = 0, columnspan = 2)
@@ -94,7 +98,10 @@ class MazeGrid():
 
         self.clear_path = tk.Button(self.path_algorithm_frame, text="Clear Visualized Path", command = self.clearVisualizedPath)
         self.clear_path.grid(row = 4, column = 0, columnspan = 2)
-    
+
+        #Initialize Grid To Start Off
+        self.initGrid()
+        
     def visualizeMazeAlgorithm(self): #Create MazeAlgorithmVisualizer instance and run algorithm
         #Make sure an algorithm isn't running already
         if self.algorithm_running: return -1
@@ -146,7 +153,10 @@ class MazeGrid():
         self.root.update()
         #Create instance of PathAlgorithmVisualizer
         visual = PathAlgorithmVisualizer(maze, self.use_path_algorithm.get())
+        start_time = time.time()
         instructions = visual.runAlgorithm()
+        duration = time.time() - start_time
+        duration = round(duration*1000, 5)
         #Visualize Algorithm
         for step in instructions:
             for square in instructions[step]:
@@ -155,6 +165,7 @@ class MazeGrid():
             time.sleep(.2)
         #End Algorithm
         self.algorithm_running = 0
+        self.time_taken_label.configure(text = "Time Taken: " + str(duration) + "ms")
 
     def clearVisualizedPath(self): #Clear visualized path from algorithm visualizer
         if self.algorithm_running: return -1

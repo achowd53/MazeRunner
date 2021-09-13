@@ -5,12 +5,12 @@ Implemented Currently:
 - Manual Maze Creation
 - Dijikstra Visualization
 - Depth First Search Visualization
+- Floyd-Warshall Visualization
 - Randomized Kruskall's Algorithm for Maze Generation
 - Randomized DFS Algorithm for Maze Generation
 - Ability to highlight/unhighlight Maze Path blocks with Highlight Path option
 
 Left to Implement:
-- Floyd-Warshall Visualization
 - Bellman-Ford Visualization
 - A* Visualization with one or multiple different heuristics
 - More Random Maze Generation Algorithms
