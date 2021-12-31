@@ -3,10 +3,11 @@ from heapq import *
 
 class PathAlgorithmVisualizer():
 
-    def __init__(self, grid, algorithm = "DepthFirstSearch"):
+    def __init__(self, grid, algorithm):
 
         self.grid = grid
         self.algorithm = algorithm
+        self.nodes_visited = 0
         #Instructions in format: Ex: {1: {(1,1):"blue", (2,2):"red", (3,3):"orange", (1,4):"blue"}, 2: {(1,2):"green"}}
         #Coloring instructions are: Orange - Searched Square, Blue - Square on Final Path, Red - Exit, Green - Entrance
         self.instructions = {}
@@ -29,12 +30,68 @@ class PathAlgorithmVisualizer():
         self.bottom_edge = len(grid) - 1
 
     def runAlgorithm(self):
-        if self.algorithm == "Dijikstra": return self.Dijikstra()
+        if self.algorithm == "A*Manhattan": return self.AStarManhattan()
+        elif self.algorithm == "Dijikstra": return self.Dijikstra()
         elif self.algorithm == "DepthFirstSearch": return self.DepthFirstSearch()
         elif self.algorithm == "Floyd-Warshall": return self.FloydWarshall()
-        elif self.algorithm == "test": return self.testAlgorithm()
 
-    def FloydWarshall(self):
+    def AStarManhattan(self): #Run A* Search Algorithm with Manhattan Distance Heuristic and return coloring instructions
+        step = 0
+        self.instructions[step] = {}
+        #Heuristic Function based on Manhattan Distance
+        def ManhattanHeuristic(node):
+            return abs(self.exit[1] - node[1]) + abs(self.exit[0] - node[0])
+        #Initialize discovered nodes, map from node to parent, map of cost to reach node,
+        #and map of estimated total path from start to finish by going through node
+        q = []
+        heapify(q)
+        parent = dict()
+        reach_cost = dict()
+        total_cost = dict()
+        for u in self.vertices:
+            reach_cost[u] = float("inf")
+            total_cost[u] = float("inf")
+        reach_cost[self.entrance] = 0
+        total_cost[self.entrance] = ManhattanHeuristic(self.entrance)
+        heappush(q, (total_cost[self.entrance], self.entrance))
+        self.nodes_visited = 1
+        #While there is still nodes to go through
+        while q:
+            step += 1
+            self.instructions[step] = {}
+            #Pop min total cost node off of min-priority queue
+            _, node = heappop(q)
+            if node == self.exit:
+                break
+            #Get valid neighbors
+            neighbors = filter(lambda x: x in self.vertices,
+                             [(node[0]+1, node[1]), (node[0]-1,node[1]), (node[0], node[1]+1), (node[0], node[1]-1)])
+            for neighbor in neighbors:
+                self.instructions[step][node] = "orange"
+                self.nodes_visited += 1
+                new_cost = reach_cost[node] + 1
+                #If the path through this node is better to reach this neighbor
+                if new_cost < reach_cost[neighbor]:
+                    parent[neighbor] = node
+                    reach_cost[neighbor] = new_cost
+                    total_cost[neighbor] = new_cost + ManhattanHeuristic(neighbor)
+                    if neighbor not in q:
+                        heappush(q, (total_cost[neighbor], neighbor))
+            #Color all previously seen nodes orange and recalculate path
+            for node in self.instructions[step-1]:
+                self.instructions[step][node] = "orange"
+            #Construct current shortest path to exit
+            backtrack = self.exit
+            if total_cost[backtrack] != float("inf"):
+                while parent[backtrack] != self.entrance:
+                    backtrack = parent[backtrack]
+                    self.instructions[step][backtrack] = "blue"
+            #Make sure entrance and exit are the right color
+            self.instructions[step][self.entrance] = "green"
+            self.instructions[step][self.exit] = "red"
+        return self.nodes_visited, self.instructions
+
+    def FloydWarshall(self): #Run Floyd Warshall Algorithm and return coloring instructions for visualizing it
         step = 0
         dist = defaultdict(lambda: dict())
         next = defaultdict(lambda: dict())
@@ -59,6 +116,7 @@ class PathAlgorithmVisualizer():
         for k in self.vertices:
             for i in self.vertices:
                 for j in self.vertices:
+                    self.nodes_visited += 1
                     if color_cycle:
                         step += 1
                         self.instructions[step] = {k: "orange", i: "orange", j: "orange", self.entrance: "green", self.exit:"red"}
@@ -75,49 +133,12 @@ class PathAlgorithmVisualizer():
             u = next[u][v]
             self.instructions[step][u] = "blue"
         self.instructions[step][v] = "red"
-        return self.instructions
-        
-    '''DepthFirst figure out why it aint blue and reset visited like currentPath'''
-
-    def _testRecursive(self, node, visited, currentPath, prevPath, instructionPath):
-        if (node == self.exit):
-            print("finished: node is " + str(node[0]) + " " + str(node[1]))
-            if len(prevPath) == 0 or len(prevPath) > len(currentPath):
-                for i in prevPath:
-                    for j in range(len(instructionPath)):
-                        if instructionPath[j] == i:
-                            instructionPath[j][i] = "orange"
-                prevPath = currentPath
-                for i in prevPath:
-                    for j in range(len(instructionPath)):
-                        if instructionPath[j] == i:
-                            instructionPath[j][i] = "blue"
-            return None
-        nodeChildren = []
-        if node != self.entrance:
-            currentPath.append(node)
-        for neighbor in [(node[0]+1, node[1]), (node[0]-1,node[1]), (node[0], node[1]-1), (node[0], node[1]+1)]:
-            if neighbor in self.vertices and neighbor not in visited:
-                nodeChildren.append(neighbor)
-                visited.add(neighbor)
-                if neighbor != self.exit:
-                    instructionPath.append({neighbor: "orange"})
-        copyCurrentPath = currentPath
-        for i in nodeChildren:
-            self._testRecursive(i, visited, copyCurrentPath, prevPath, instructionPath)
-
-    def testAlgorithm(self):
-        visited = {self.entrance}
-        currentPath = []
-        prevPath = []
-        instructionPath = []
-        self._testRecursive(self.entrance, visited, currentPath, prevPath, instructionPath)
-        for i in range(len(instructionPath)):
-            self.instructions[i] = instructionPath[i]
-        return self.instructions
+        self.nodes_visited = len(self.vertices)**3
+        return self.nodes_visited, self.instructions
 
     def DepthFirstSearch(self): #Run DFS Algorithm and return coloring instructions for visualizing it
         step = 0
+        self.nodes_visited = 1
         q = deque([self.entrance])
         visited = set([self.entrance])
         prev = {self.entrance: None}
@@ -129,6 +150,7 @@ class PathAlgorithmVisualizer():
             #Pop off node from stack and add to visited
             node = q.popleft()
             visited.add(node)
+            self.nodes_visited += 1
 
             #If exit found, color path from entrance blue and return instructions
             if node == self.exit:
@@ -136,7 +158,7 @@ class PathAlgorithmVisualizer():
                     self.instructions[step][node] = "blue"
                     node = prev[node]
                 self.instructions[step][self.exit] = "red"
-                return self.instructions
+                return self.nodes_visited, self.instructions
             #Color newly visited nodes orange
             self.instructions[step][node] = "orange"
             
@@ -149,10 +171,11 @@ class PathAlgorithmVisualizer():
                 prev[neighbor] = node
             #Make sure entrance stays green
             self.instructions[step][self.entrance] = "green"
-        return self.instructions
+        return self.nodes_visited, self.instructions
                    
     def Dijikstra(self): #Run Dijikstra Algorithm and return coloring instructions for visualizing it
         step = 0
+        self.nodes_visited = 1
         dist = {self.entrance: 0}
         prev = {self.entrance: None}
         q = []
@@ -172,11 +195,11 @@ class PathAlgorithmVisualizer():
             #Increment Step for Instructions
             step += 1
             self.instructions[step] = {}
-
             for v in neighbors:
                 temp = dist[u] + 1
                 #Color newly visited neighbors orange
                 self.instructions[step][v] = "orange"
+                self.nodes_visited += 1
                 #If new path faster to v
                 if temp < dist[v]:
                     dist[v] = temp
@@ -189,8 +212,8 @@ class PathAlgorithmVisualizer():
                             self.instructions[step][v] = "blue"
                         self.instructions[step][self.entrance] = "green"
                         self.instructions[step][self.exit] = "red"
-                        return self.instructions
-        return self.instructions
+                        return self.nodes_visited, self.instructions
+        return self.nodes_visited, self.instructions
         
     def __str__(self):
         text = ""
